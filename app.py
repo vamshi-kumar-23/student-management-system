@@ -1,72 +1,157 @@
 from flask import Flask, render_template, request, redirect, session
-import db
+import sqlite3
 
 app = Flask(__name__)
-app.secret_key = "student_management_secret"
+app.secret_key = "secret123"
 
-db.create_tables()
+DB_NAME = "students.db"
+
+# ---------- DATABASE ----------
+def init_db():
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS students (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT,
+            roll TEXT,
+            branch TEXT
+        )
+    """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE,
+            password TEXT
+        )
+    """)
+
+    cursor.execute("""
+        INSERT OR IGNORE INTO users (username, password)
+        VALUES ('admin', 'admin123')
+    """)
+
+    conn.commit()
+    conn.close()
+
+init_db()
+
+# ---------- LOGIN ----------
+def is_logged_in():
+    return "user" in session
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
+        u = request.form["username"]
+        p = request.form["password"]
 
-        if db.check_user(username, password):
-            session["user"] = username
+        conn = sqlite3.connect(DB_NAME)
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT * FROM users WHERE username=? AND password=?", (u, p)
+        )
+        user = cursor.fetchone()
+        conn.close()
+
+        if user:
+            session["user"] = u
             return redirect("/")
-        else:
-            return render_template("login.html", error="Invalid login")
+        return render_template("login.html", error="Invalid credentials")
 
     return render_template("login.html")
+
 
 @app.route("/logout")
 def logout():
     session.pop("user", None)
     return redirect("/login")
 
+
+# ---------- STUDENTS ----------
 @app.route("/")
 def index():
-    if "user" not in session:
+    if not is_logged_in():
         return redirect("/login")
-    students = db.get_students()
+
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM students")
+    students = cursor.fetchall()
+    conn.close()
+
     return render_template("index.html", students=students)
+
 
 @app.route("/add", methods=["GET", "POST"])
 def add():
-    if "user" not in session:
+    if not is_logged_in():
         return redirect("/login")
 
     if request.method == "POST":
         name = request.form["name"]
         roll = request.form["roll"]
         branch = request.form["branch"]
-        db.add_student(name, roll, branch)
+
+        conn = sqlite3.connect(DB_NAME)
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO students (name, roll, branch) VALUES (?, ?, ?)",
+            (name, roll, branch),
+        )
+        conn.commit()
+        conn.close()
+
         return redirect("/")
+
     return render_template("add.html")
+
 
 @app.route("/edit/<int:id>", methods=["GET", "POST"])
 def edit(id):
-    if "user" not in session:
+    if not is_logged_in():
         return redirect("/login")
 
-    student = db.get_student(id)
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
 
     if request.method == "POST":
         name = request.form["name"]
         roll = request.form["roll"]
         branch = request.form["branch"]
-        db.update_student(id, name, roll, branch)
+
+        cursor.execute(
+            "UPDATE students SET name=?, roll=?, branch=? WHERE id=?",
+            (name, roll, branch, id),
+        )
+        conn.commit()
+        conn.close()
         return redirect("/")
+
+    cursor.execute("SELECT * FROM students WHERE id=?", (id,))
+    student = cursor.fetchone()
+    conn.close()
 
     return render_template("edit.html", student=student)
 
+
 @app.route("/delete/<int:id>")
 def delete(id):
-    if "user" not in session:
+    if not is_logged_in():
         return redirect("/login")
-    db.delete_student(id)
+
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM students WHERE id=?", (id,))
+    conn.commit()
+    conn.close()
+
     return redirect("/")
 
+
+# ---------- RUN ----------
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()

@@ -2,17 +2,32 @@
 <html>
 <head>
     <title>Edit Student</title>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-<h2>Edit Student</h2>
 
-<form method="POST">
-    Name: <input type="text" name="name" value="{{ student[1] }}"><br><br>
-    Roll: <input type="text" name="roll" value="{{ student[2] }}"><br><br>
-    Branch: <input type="text" name="branch" value="{{ student[3] }}"><br><br>
-    <button type="submit">Update</button>
-</form>
+<div class="container">
+    <div class="card">
+        <h2>Edit Student</h2>
 
-<a href="/">Back</a>
+        <form method="POST">
+            <label>Name</label>
+            <input type="text" name="name" value="{{ student[1] }}" required>
+
+            <label>Roll</label>
+            <input type="text" name="roll" value="{{ student[2] }}" required>
+
+            <label>Branch</label>
+            <input type="text" name="branch" value="{{ student[3] }}" required>
+
+            <br><br>
+            <button type="submit">Update</button>
+        </form>
+
+        <br>
+        <a href="/">⬅ Back</a>
+    </div>
+</div>
+
 </body>
 </html>

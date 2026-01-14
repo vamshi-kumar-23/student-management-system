@@ -2,30 +2,45 @@
 <html>
 <head>
     <title>Students</title>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-<h2>Student List</h2>
 
-<a href="/add">Add Student</a> |
-<a href="/logout">Logout</a>
+<div class="container">
+    <div class="card">
 
-<table border="1" cellpadding="5">
-<tr>
-    <th>ID</th><th>Name</th><th>Roll</th><th>Branch</th><th>Action</th>
-</tr>
+        <div class="top-bar">
+            <h3>Welcome {{ session.user }}</h3>
+            <a class="logout" href="/logout">Logout</a>
+        </div>
 
-{% for s in students %}
-<tr>
-    <td>{{ s[0] }}</td>
-    <td>{{ s[1] }}</td>
-    <td>{{ s[2] }}</td>
-    <td>{{ s[3] }}</td>
-    <td>
-        <a href="/edit/{{ s[0] }}">Edit</a>
-        <a href="/delete/{{ s[0] }}">Delete</a>
-    </td>
-</tr>
-{% endfor %}
-</table>
+        <a href="/add">➕ Add Student</a><br><br>
+
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Roll</th>
+                <th>Branch</th>
+                <th>Actions</th>
+            </tr>
+
+            {% for s in students %}
+            <tr>
+                <td>{{ s[0] }}</td>
+                <td>{{ s[1] }}</td>
+                <td>{{ s[2] }}</td>
+                <td>{{ s[3] }}</td>
+                <td class="action">
+                    <a href="/edit/{{ s[0] }}">✏ Edit</a>
+                    <a href="/delete/{{ s[0] }}" onclick="return confirm('Delete?')">🗑 Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+
+    </div>
+</div>
+
 </body>
 </html>

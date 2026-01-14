@@ -2,18 +2,30 @@
 <html>
 <head>
     <title>Login</title>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-<h2>Student Management System</h2>
 
-<form method="POST">
-    <input type="text" name="username" placeholder="Username" required><br><br>
-    <input type="password" name="password" placeholder="Password" required><br><br>
-    <button type="submit">Login</button>
-</form>
+<div class="container">
+    <div class="card">
+        <h2>Login</h2>
 
-{% if error %}
-<p style="color:red">{{ error }}</p>
-{% endif %}
+        <form method="POST">
+            <label>Username</label>
+            <input type="text" name="username" required>
+
+            <label>Password</label>
+            <input type="password" name="password" required>
+
+            <br><br>
+            <button type="submit">Login</button>
+        </form>
+
+        {% if error %}
+        <p style="color:red; text-align:center;">{{ error }}</p>
+        {% endif %}
+    </div>
+</div>
+
 </body>
 </html>
